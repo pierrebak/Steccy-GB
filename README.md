@@ -29,7 +29,7 @@ src/gb/        portable core (no platform dependency)
 gb-lx/         Linux: xsteccy-gb (X11), steccy-gb (framebuffer), gb-headless (tests)
 gb-stm32/      STM32F407VET6 Black Board: Makefile, main.c, gbstm32.c, gbinput.c, gbmenu.c,
                shim/ (compatibility headers for STECCY drivers), linker script
-bin/           precompiled .hex files (not tested on hardware, see below)
+bin/           precompiled .hex files (tested on hardware)
 tools/         run-tests.sh (test ROMs), cachetest.c (ROM cache on PC), make-keytest.py
 steccy-gb.ini  example configuration file
 ```
