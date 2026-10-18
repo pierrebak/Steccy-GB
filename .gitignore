@@ -1,0 +1,8 @@
+gb-lx/xsteccy-gb
+gb-lx/steccy-gb
+gb-lx/gb-headless
+gb-stm32/build-*/
+gb-stm32/*.hex
+testroms/
+*.sav
+*.pgm
