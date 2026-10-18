@@ -1,8 +1,6 @@
 # STECCY-GB — Game Boy emulator derived from STECCY
 
-STECCY-GB emulates a classic Game Boy (DMG, 1989). It is built on the architecture and drivers of [STECCY](https://github.com/ukw100/STECCY), Frank Meyer’s ZX Spectrum emulator for STM32[...] 
-
-The Spectrum core (Z80, ULA) has been replaced by a Game Boy core. Everything else is kept, and most drivers are used **without modification**:
+STECCY-GB emulates a classic Game Boy (DMG, 1989). It is built on the architecture and drivers of [STECCY](https://github.com/ukw100/STECCY), Frank Meyer’s ZX Spectrum emulator for STM32. The Spectrum core (Z80, ULA) has been replaced by a Game Boy core. Everything else is kept, and most drivers are used **without modification**:
 - the board and the TFT display;
 - the SD card and FatFs;
 - PS/2 and USB keyboards;
@@ -13,7 +11,7 @@ The Spectrum core (Z80, ULA) has been replaced by a Game Boy core. Everything el
 
 | STECCY (ZX Spectrum)            | STECCY-GB (Game Boy)                | Note |
 |---------------------------------|-------------------------------------|------|
-| `src/z80/z80.c`                 | `src/gb/sm83.c`                     | New CPU: the Game Boy SM83 is not Z80-compatible (no IX/IY, ED, IN/OUT, no S and P/V flags; instructions [...])
+| `src/z80/z80.c`                 | `src/gb/sm83.c`                     | New CPU: the Game Boy SM83 is not Z80-compatible (no IX/IY, ED, IN/OUT, no S and P/V flags; instructions differ) |
 | `src/zxram/zxram.c`             | `src/gb/gbmem.c`                    | 128K banked RAM replaced by cartridge controllers MBC1/2/3/5 |
 | `src/zxscr/zxscr.c`             | `src/gb/gbppu.c` + platforms        | Tile and sprite rendering line by line |
 | `src/zxio/zxio.c`               | `src/gb/gbio.c`                     | Joypad, timer, serial port, DMA |
@@ -48,7 +46,7 @@ make                    # xsteccy-gb, steccy-gb, gb-headless
 
 ## STM32F407VET6
 
-Hardware is the same as STECCY (Black Board + TFT SSD1963 800x480 or ILI9341 320x240, SD card, PS/2 or USB keyboard, Wii controller). Wiring is therefore as described in STECCY’s README[...] 
+Hardware is the same as STECCY (Black Board + TFT SSD1963 800x480 or ILI9341 320x240, SD card, PS/2 or USB keyboard, Wii controller). Wiring is therefore as described in STECCY’s README and examples.
 
 ```
 sudo apt-get install gcc-arm-none-eabi libnewlib-arm-none-eabi
@@ -61,10 +59,9 @@ make STECCY=../../STECCY TFT=ILI9341     # -> steccy-gb-ili9341.hex
 Setup:
 1. Flash the `.hex` as for STECCY.
 2. Copy `.GB` ROMs to the SD card (FAT32, not exFAT) using 8.3 filename format.
-3. Also copy, if needed, the `bin/STECCYGB.INI` file. On STM32 the name must be **`STECCYGB.INI`**: FatFs is compiled without long filenames, and `steccy-gb.ini` (9 characters before the dot) do[...]
+3. Also copy, if needed, the `bin/STECCYGB.INI` file. On STM32 the name must be **`STECCYGB.INI`**: FatFs is compiled without long filenames, and `steccy-gb.ini` (9 characters before the dot) does not work on STM32.
 
-
-Without a `ROM=` line in the ini, a selection menu is shown at startup. If no ROM is found, the red screen indicates a FatFs error or lists files seen at the root. Parts are[...]
+Without a `ROM=` line in the ini, a selection menu is shown at startup. If no ROM is found, the red screen indicates a FatFs error or lists files seen at the root.
 
 Display:
 - SSD1963: 3x zoom, i.e. 480x432.
@@ -109,6 +106,16 @@ Syntax is that of `steccy.ini`. Available keys:
 
 A commented example is in `steccy-gb.ini`.
 
+Important: for USB keyboard support on the STM32 build, you must enable the USB keyboard in the STM32 ini file on the SD card. Add the line:
+
+```
+KEYBOARD=USB
+```
+
+to `STECCYGB.INI` (on the SD card) to activate USB HID host keyboard handling. Under Linux, add `KEYBOARD=USB` to `steccy-gb.ini` or use `KEYBOARD=PS2` / `KEYBOARD=ZX` as needed.
+
+Also note: on some Black Board revisions the USB host pull-up resistor (commonly referred to as R21 on older V2.0 boards) must be desoldered to allow the STM32 to act as USB host. If your board has an R21 resistor fitted and a USB keyboard is not recognized, desoldering R21 may be required. Verify the resistor location on your board revision before modifying hardware.
+
 ## Sound
 
 The Game Boy's 4 channels are emulated (`src/gb/gbapu.c`):
@@ -125,7 +132,7 @@ Sound is mixed to mono, at 16 kHz on STM32 to limit CPU load. On STM32, it is ou
 | IN           | PA4 **via a 10 µF capacitor** (+ side to PA4) |
 | output       | 8 Ω speaker  |
 
-Start with the module’s potentiometer almost at minimum. If whining occurs, add 100 to 470 µF between the module’s VCC and GND. `SOUND=no` in the ini disables sound. Under Linux, `gb-headless r[...]`
+Start with the module’s potentiometer almost at minimum. If whining occurs, add 100 to 470 µF between the module’s VCC and GND. `SOUND=no` in the ini disables sound. Under Linux, `gb-headless` disables audio.
 
 ## What has been verified
 
@@ -153,8 +160,8 @@ These are **facts**: checks performed on PC with `tools/run-tests.sh` and screen
 
 These are **assumptions**. No test has been done on a real STM32 board nor with commercial games.
 
-- **Speed on STM32F407 at 168 MHz**: full speed for the emulated CPU is plausible but not measured. Sending images to the TFT via FSMC (3x zoom = about 207,000 pixels per frame) p[...]
-- **ROM in internal flash**: like STECCY, the SD card is no longer read during gameplay. At load, a ROM up to 384 KB is copied into sectors 5 to 7 of the STM32 flash (a few [...])
+- **Speed on STM32F407 at 168 MHz**: full speed for the emulated CPU is plausible but not measured. Sending images to the TFT via FSMC (3x zoom = about 207,000 pixels per frame) puts a non-trivial load on the bus and CPU.
+- **ROM in internal flash**: like STECCY, the SD card is no longer read during gameplay. At load, a ROM up to 384 KB is copied into sectors 5 to 7 of the STM32 flash (a few flash pages reserved).
 - **Pixel order on ILI9341 at 1.5x zoom**: deduced from STECCY’s `tft_set_area()` code (in landscape, Y varies fastest), not verified on the display.
 - **Linux framebuffer variant and USB keyboard on STM32**: only compiled.
 
@@ -169,7 +176,7 @@ These are **assumptions**. No test has been done on a real STM32 board nor with 
 
 ## ROMs and rights
 
-Unlike the Sinclair ROMs used by STECCY, no Game Boy ROMs are provided. Commercial games are copyright-protected: only use games you own[...]
+Unlike the Sinclair ROMs used by STECCY, no Game Boy ROMs are provided. Commercial games are copyright-protected: only use games you own.
 
 ## License
 
