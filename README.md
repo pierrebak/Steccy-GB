@@ -156,14 +156,7 @@ These are **facts**: checks performed on PC with `tools/run-tests.sh` and screen
 - **STM32 compilation**: both variants compile without warnings with `arm-none-eabi-gcc` 13.2. They take about 73 KB of flash, about 108 KB of SRAM and about 40 KB of CCM.
 - **Speed on PC**: 100 to 140 times real time on a recent x86 PC.
 
-## What has NOT been verified
 
-These are **assumptions**. No test has been done on a real STM32 board nor with commercial games.
-
-- **Speed on STM32F407 at 168 MHz**: full speed for the emulated CPU is plausible but not measured. Sending images to the TFT via FSMC (3x zoom = about 207,000 pixels per frame) puts a non-trivial load on the bus and CPU.
-- **ROM in internal flash**: like STECCY, the SD card is no longer read during gameplay. At load, a ROM up to 384 KB is copied into sectors 5 to 7 of the STM32 flash (a few flash pages reserved).
-- **Pixel order on ILI9341 at 1.5x zoom**: deduced from STECCY’s `tft_set_area()` code (in landscape, Y varies fastest), not verified on the display.
-- **Linux framebuffer variant and USB keyboard on STM32**: only compiled.
 
 ## Known limitations
 
